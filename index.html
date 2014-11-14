@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Play</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link type="text/css" rel="stylesheet" href="css/main.css">
+        <script 
+            data-dojo-config="async: 1, dojoBlankHtmlUrl: 'blank.html', packages: [{name: 'play', location: location.pathname.replace(/\/[^/]+$/, '') + 'js/play'}]"
+            src="//ajax.googleapis.com/ajax/libs/dojo/1.10.1/dojo/dojo.js"></script>
+        <script>
+            require(['play/Play', 'dojo/domReady!'], function(Play){
+                Play.init();
+            });
+        </script>
+            
+    </head>
+    <body>
+        <div class="container"></div>
+    </body>
+</html>
