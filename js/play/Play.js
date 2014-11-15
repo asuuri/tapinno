@@ -1,10 +1,14 @@
 define([
     'dojo/on',
-    'dojo/has'
-], function(on, has){
-    var context, oscillator;
+    'dojo/has',
+    'dojo/query',
+    'dojo/dom-construct'
+], function(on, has, query, domConstruct){
+    var context;
     return {
-        init: function() {
+        container: null,
+        
+        init: function(container) {  
             try {
                 window.AudioContext = window.AudioContext||window.webkitAudioContext;
                 context = new AudioContext();
@@ -12,6 +16,9 @@ define([
                 catch(e) {
                 alert('Web Audio API is not supported in this browser');
             }
+            
+            this.container = query(container)[0];
+            this.renderContent();
 
             var that = this;
             var eventName = 'mousedown';
@@ -20,8 +27,10 @@ define([
                 eventName = 'touchstart';
             }
 
-            on(window, eventName, function() {
-                that.play(493.88);
+            on(window, eventName, function(event) {
+                var key = event.target;
+                var volume = (event.clientY/key.scrollHeight);
+                that.play(key.dataset.note, volume);
             });
         },
 
@@ -51,7 +60,11 @@ define([
             return decayTime;
         },
 
-        play: function(note) {
+        play: function(note, volume) {
+            if (volume < 0 && volume > 1) {
+                throw new Error('Invalid volume value.');
+            }
+            volume = volume * 1.8;
             var oscillator = context.createOscillator();
             var gainNode = context.createGain();
             oscillator.type = 0;
@@ -59,12 +72,39 @@ define([
             gainNode.connect(context.destination);
             oscillator.frequency.value = note;
 
-            var endTime = this.ADSREnvelope(gainNode.gain, context.currentTime, 0, 1, 1000, 1000, 0.6, 3, 10);
+            var endTime = this.ADSREnvelope(gainNode.gain, context.currentTime, 0, volume, 1000, 1000, volume * 0.6, 2, 10);
 
             oscillator.start(context.currentTime);
             oscillator.stop(endTime);
 
             return oscillator;
+        },
+        
+        renderContent: function() {
+            var keyCount = 12;
+            var keyboardNode = domConstruct.create(
+                'ul', 
+                {className: 'keyboard'}, 
+                this.container, 
+                'only'
+            );
+            var width = this.container.scrollWidth / keyCount;
+            var keyIndex = -9;
+            for(var i=0; i < keyCount; i++) {
+                var keyNode = domConstruct.create(
+                    'li', 
+                    {
+                        className: 'key',
+                        style: 'width: ' + width + 'px;'
+                    }, 
+                    keyboardNode, 
+                    'last'
+                );
+        
+                console.dir(keyNode);
+                keyNode.dataset.note = Math.pow(2, (keyIndex/12)) * 440;
+                keyIndex++;
+            }
         }
     };
 });
